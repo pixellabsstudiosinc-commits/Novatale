@@ -244,6 +244,123 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // ===================================
+    // Screenshots Slider
+    // ===================================
+    const slider = document.querySelector('.screenshots-slider');
+    const track = document.querySelector('.screenshots-track');
+    const slides = document.querySelectorAll('.screenshot-item');
+    const prevBtn = document.querySelector('.slider-btn-prev');
+    const nextBtn = document.querySelector('.slider-btn-next');
+    const pagination = document.querySelector('.slider-pagination');
+    
+    if (slider && track && slides.length > 0) {
+        let currentIndex = 0;
+        const slidesPerView = window.innerWidth <= 768 ? 1 : 2;
+        const totalSlides = slides.length;
+        const maxIndex = totalSlides - slidesPerView;
+        
+        // Create pagination dots
+        for (let i = 0; i <= maxIndex; i++) {
+            const dot = document.createElement('button');
+            dot.className = 'pagination-dot';
+            if (i === 0) dot.classList.add('active');
+            dot.setAttribute('aria-label', `Go to slide ${i + 1}`);
+            dot.addEventListener('click', () => goToSlide(i));
+            pagination.appendChild(dot);
+        }
+        
+        const dots = document.querySelectorAll('.pagination-dot');
+        
+        // Update slider
+        function updateSlider() {
+            const slideWidth = slides[0].offsetWidth;
+            const gap = 24;
+            const offset = -(currentIndex * (slideWidth + gap));
+            track.style.transform = `translateX(${offset}px)`;
+            
+            // Update pagination
+            dots.forEach((dot, index) => {
+                dot.classList.toggle('active', index === currentIndex);
+            });
+            
+            // Update button states
+            prevBtn.disabled = currentIndex === 0;
+            nextBtn.disabled = currentIndex >= maxIndex;
+        }
+        
+        // Go to specific slide
+        function goToSlide(index) {
+            currentIndex = Math.max(0, Math.min(index, maxIndex));
+            updateSlider();
+        }
+        
+        // Previous slide
+        prevBtn.addEventListener('click', () => {
+            if (currentIndex > 0) {
+                currentIndex--;
+                updateSlider();
+            }
+        });
+        
+        // Next slide
+        nextBtn.addEventListener('click', () => {
+            if (currentIndex < maxIndex) {
+                currentIndex++;
+                updateSlider();
+            }
+        });
+        
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') {
+                prevBtn.click();
+            } else if (e.key === 'ArrowRight') {
+                nextBtn.click();
+            }
+        });
+        
+        // Touch/Swipe support
+        let touchStartX = 0;
+        let touchEndX = 0;
+        
+        slider.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+        
+        slider.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+        
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            const diff = touchStartX - touchEndX;
+            
+            if (Math.abs(diff) > swipeThreshold) {
+                if (diff > 0) {
+                    // Swipe left - next slide
+                    nextBtn.click();
+                } else {
+                    // Swipe right - previous slide
+                    prevBtn.click();
+                }
+            }
+        }
+        
+        // Update on window resize
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                updateSlider();
+            }, 250);
+        });
+        
+        // Initial update
+        updateSlider();
+    }
+    
+    // ===================================
     // Console Welcome Message
     // ===================================
     console.log('%c🎨 NovaTale Landing Page', 'color: #00D4FF; font-size: 20px; font-weight: bold;');
